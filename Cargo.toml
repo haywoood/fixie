@@ -1,0 +1,14 @@
+[package]
+name = "fixie"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sycamore = "0.6.3"
+log = "0.4.14"
+console_log = "0.2.0"
+wasm-bindgen = "0.2.78"
+
+[dependencies.web-sys]
+features = ["InputEvent", "KeyboardEvent", "Window"]
+version = "0.3.55"
