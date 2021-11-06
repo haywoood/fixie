@@ -1,15 +1,1 @@
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.                                     like the bicycle
+like the bicycle
