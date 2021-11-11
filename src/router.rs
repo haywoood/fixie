@@ -32,9 +32,9 @@ enum FsmState {
 }
 
 #[derive(Clone)]
-pub struct EventQueue {
+pub struct EventQueue<T> {
     fsm_state: Rc<RefCell<FsmState>>,
-    queue: Rc<RefCell<Vec<Option<&dyn Dispatchable>>>>,
+    queue: Rc<RefCell<Vec<Option<T>>>>,
     post_event_callback_fns: Rc<RefCell<HashMap<String, PostEventCallback>>>,
 }
 

@@ -1,0 +1,1 @@
+/home/ryan/dev/rust/fixie/examples/simple/target/wasm32-unknown-unknown/debug/simple.wasm: /home/ryan/dev/rust/fixie/examples/simple/src/main.rs /home/ryan/dev/rust/fixie/src/events.rs /home/ryan/dev/rust/fixie/src/lib.rs /home/ryan/dev/rust/fixie/src/router.rs

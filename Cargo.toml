@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sycamore = "0.6.3"
+sycamore = { git = "https://github.com/sycamore-rs/sycamore", rev = "3ecf86a9bb420824172e10fd23e6116cdc346e47" }
 log = "0.4.14"
 console_log = "0.2.0"
 wasm-bindgen = "0.2.78"
