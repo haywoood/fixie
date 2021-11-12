@@ -8,6 +8,10 @@ use wasm_bindgen::JsCast;
 
 use crate::events::handle;
 
+thread_local! {
+    static EVENT_QUEUE: Rc<EventQueue> = Rc::new(EventQueue::new());
+}
+
 type PostEventCallback = Box<dyn FnOnce()>;
 
 #[derive(Clone, Copy, Debug)]
@@ -26,14 +30,20 @@ enum FsmState {
     Paused,
 }
 
+pub trait Dispatch {
+    fn dispatch(&self);
+}
+
+pub type Event = Option<Box<dyn Dispatch>>;
+
 #[derive(Clone)]
-pub struct EventQueue<T> {
+pub struct EventQueue {
     fsm_state: Rc<RefCell<FsmState>>,
-    queue: Rc<RefCell<Vec<Option<T>>>>,
+    queue: Rc<RefCell<Vec<Event>>>,
     post_event_callback_fns: Rc<RefCell<HashMap<String, PostEventCallback>>>,
 }
 
-impl<T: std::clone::Clone + std::fmt::Debug + 'static> EventQueue<T> {
+impl EventQueue {
     pub fn new() -> Self {
         Self {
             fsm_state: Rc::new(RefCell::new(FsmState::Idle)),
@@ -42,7 +52,7 @@ impl<T: std::clone::Clone + std::fmt::Debug + 'static> EventQueue<T> {
         }
     }
 
-    fn fsm_trigger(&self, trigger: Trigger, event: Option<T>) {
+    fn fsm_trigger(&self, trigger: Trigger, event: Event) {
         let (new_fsm_state, action_fn): (FsmState, Box<dyn FnOnce()>) = {
             let current_fsm_state = *self.fsm_state.borrow();
             debug!("");
@@ -50,7 +60,6 @@ impl<T: std::clone::Clone + std::fmt::Debug + 'static> EventQueue<T> {
             debug!("");
             debug!("FsmState: {:?}", current_fsm_state);
             debug!("Trigger:  {:?}", trigger);
-            debug!("Event:    {:?}", event);
             debug!("");
             debug!("__________________fsm_trigger______________________");
             debug!("");
@@ -98,11 +107,11 @@ impl<T: std::clone::Clone + std::fmt::Debug + 'static> EventQueue<T> {
         action_fn()
     }
 
-    pub fn push(&self, event: Option<T>) {
+    pub fn push(&self, event: Event) {
         self.fsm_trigger(Trigger::AddEvent, event)
     }
 
-    fn add_event(&self, event: Option<T>) {
+    fn add_event(&self, event: Event) {
         self.queue.borrow_mut().push(event)
     }
 
@@ -131,7 +140,6 @@ impl<T: std::clone::Clone + std::fmt::Debug + 'static> EventQueue<T> {
         debug!("");
         debug!("____________process_first_event_in_queue___________");
         debug!("");
-        debug!("Processing first event in queue: {:?}", event_v);
         debug!("");
         debug!("____________process_first_event_in_queue___________");
         debug!("");
@@ -150,7 +158,6 @@ impl<T: std::clone::Clone + std::fmt::Debug + 'static> EventQueue<T> {
             debug!("");
             debug!("____________The Queue___________");
             debug!("");
-            debug!("Queue: {:?}", self.queue.borrow());
             debug!("");
             debug!("____________The Queue___________");
             debug!("");
@@ -163,14 +170,8 @@ impl<T: std::clone::Clone + std::fmt::Debug + 'static> EventQueue<T> {
         self.queue.replace(vec![]);
     }
 
-    fn exception(&self, _event: Option<T>) {
+    fn exception(&self, _event: Event) {
         self.purge();
         // throw?
     }
 }
-
-thread_local! {
-   // static EVENT_QUEUE: Rc<EventQueue<>> = Rc::new(EventQueue::new());
-}
-
-fn dispatch() {}
