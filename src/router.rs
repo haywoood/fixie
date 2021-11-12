@@ -10,11 +10,6 @@ use crate::events::handle;
 
 type PostEventCallback = Box<dyn FnOnce()>;
 
-#[derive(Clone, Debug)]
-pub struct Dispatch {}
-
-pub trait Dispatchable {}
-
 #[derive(Clone, Copy, Debug)]
 enum Trigger {
     AddEvent,
@@ -173,3 +168,9 @@ impl<T: std::clone::Clone + std::fmt::Debug + 'static> EventQueue<T> {
         // throw?
     }
 }
+
+thread_local! {
+   // static EVENT_QUEUE: Rc<EventQueue<>> = Rc::new(EventQueue::new());
+}
+
+fn dispatch() {}

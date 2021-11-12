@@ -1,8 +1,5 @@
 use fixie::*;
-use sycamore::{
-    context::{ContextProvider, ContextProviderProps, use_context},
-    prelude::*,
-};
+use sycamore::{context::{ContextProvider, ContextProviderProps, use_context}, prelude::*, reactive::create_reducer};
 
 struct AppState {
     count: Signal<i32>,
@@ -16,14 +13,15 @@ enum Events {
 #[component(App<G>)]
 fn app() -> View<G> {
     view! {
-        p { "coca-colas" }
+        p { "coca-colax" }
     }
 }
 
 fn main() {
-    let app_state = AppState { count: 10 };
+    let app_state = AppState { count: Signal::new(10) };
     console_error_panic_hook::set_once();
     console_log::init_with_level(log::Level::Debug).unwrap();
+    create_reducer(, reduce)
 
     sycamore::render(|| {
         view! {
@@ -36,3 +34,4 @@ fn main() {
         }
     });
 }
+
