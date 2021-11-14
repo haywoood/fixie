@@ -1,4 +1,4 @@
-use fixie::router::Dispatch;
+use fixie::router::{Dispatch, dispatch};
 use sycamore::{context::{ContextProvider, ContextProviderProps, use_context}, prelude::*, reactive::create_reducer};
 
 struct AppState {
@@ -7,16 +7,10 @@ struct AppState {
 
 
 enum Events {
-    InitDB(AppState),
+    InitDB,
 }
 
-impl Dispatch for Events {
-    fn dispatch(&self) -> () {
-        match self {
-            Events::InitDB(AppState) => ()
-        }
-    }
-}
+impl Dispatch for Events {}
 
 #[component(App<G>)]
 fn app() -> View<G> {
@@ -30,7 +24,9 @@ fn main() {
     console_error_panic_hook::set_once();
     console_log::init_with_level(log::Level::Debug).unwrap();
 
-    sycamore::render(|| {
+    dispatch(Box::new(Events::InitDB));
+
+    sycamore::render(move || {
         view! {
             ContextProvider(ContextProviderProps {
                 value: app_state,

@@ -1,5 +1,4 @@
 use log::debug;
-use std::any::{Any, TypeId};
 use std::cell::*;
 use std::collections::HashMap;
 use std::rc::*;
@@ -30,9 +29,7 @@ enum FsmState {
     Paused,
 }
 
-pub trait Dispatch {
-    fn dispatch(&self);
-}
+pub trait Dispatch {}
 
 pub type Event = Option<Box<dyn Dispatch>>;
 
@@ -61,7 +58,7 @@ impl EventQueue {
             debug!("FsmState: {:?}", current_fsm_state);
             debug!("Trigger:  {:?}", trigger);
             debug!("");
-            debug!("__________________fsm_trigger______________________");
+            debug!("__________________/fsm_trigger_____________________");
             debug!("");
             // You should read the following "case" as:
             // [current-FSM-state trigger] -> [new-FSM-state action-fn]
@@ -137,12 +134,7 @@ impl EventQueue {
     fn process_first_event_in_queue(&self) {
         let mut queue = self.queue.borrow_mut();
         let event_v = queue.first().unwrap();
-        debug!("");
         debug!("____________process_first_event_in_queue___________");
-        debug!("");
-        debug!("");
-        debug!("____________process_first_event_in_queue___________");
-        debug!("");
         handle(event_v);
         queue.remove(0);
     }
@@ -174,4 +166,10 @@ impl EventQueue {
         self.purge();
         // throw?
     }
+}
+
+pub fn dispatch(event: Box<dyn Dispatch>) {
+    EVENT_QUEUE.with(|event_queue| {
+        event_queue.push(Some(event))
+    })
 }
