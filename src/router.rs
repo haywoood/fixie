@@ -1,3 +1,5 @@
+extern crate log;
+
 use log::debug;
 use std::any::{Any, TypeId};
 use std::cell::*;
@@ -14,6 +16,11 @@ thread_local! {
 
 type PostEventCallback = Box<dyn FnOnce()>;
 
+pub trait Effect {}
+pub type Event = Rc<Vec<Box<dyn Effect>>>;
+struct NOOP;
+impl Effect for NOOP {}
+
 #[derive(Clone, Copy, Debug)]
 enum Trigger {
     AddEvent,
@@ -29,12 +36,6 @@ enum FsmState {
     Running,
     Paused,
 }
-
-pub trait Dispatch {
-    fn dispatch(&self);
-}
-
-pub type Event = Option<Box<dyn Dispatch>>;
 
 #[derive(Clone)]
 pub struct EventQueue {
@@ -56,12 +57,12 @@ impl EventQueue {
         let (new_fsm_state, action_fn): (FsmState, Box<dyn FnOnce()>) = {
             let current_fsm_state = *self.fsm_state.borrow();
             debug!("");
-            debug!("__________________fsm_trigger______________________");
+            debug!("__________________[fsm_trigger]______________________");
             debug!("");
             debug!("FsmState: {:?}", current_fsm_state);
             debug!("Trigger:  {:?}", trigger);
             debug!("");
-            debug!("__________________fsm_trigger______________________");
+            debug!("__________________[fsm_trigger]______________________");
             debug!("");
             // You should read the following "case" as:
             // [current-FSM-state trigger] -> [new-FSM-state action-fn]
@@ -108,10 +109,12 @@ impl EventQueue {
     }
 
     pub fn push(&self, event: Event) {
+        debug!("Router.push called, triggering add event");
         self.fsm_trigger(Trigger::AddEvent, event)
     }
 
     fn add_event(&self, event: Event) {
+        debug!("Adding event");
         self.queue.borrow_mut().push(event)
     }
 
@@ -126,7 +129,8 @@ impl EventQueue {
         let self_cloned = self.clone();
         let next_tick = Closure::wrap(Box::new(move || {
             debug!("I'm in the closure");
-            self_cloned.fsm_trigger(Trigger::RunQueue, None)
+            let noop: Event = Rc::new(vec![Box::new(NOOP {})]);
+            self_cloned.fsm_trigger(Trigger::RunQueue, noop)
         }) as Box<dyn FnMut()>);
         self.next_tick(&next_tick);
         // we need to forget lest we want our closure to get dropped.
@@ -143,6 +147,7 @@ impl EventQueue {
         debug!("");
         debug!("____________process_first_event_in_queue___________");
         debug!("");
+        debug!("Calling events.handle");
         handle(event_v);
         queue.remove(0);
     }
@@ -152,7 +157,8 @@ impl EventQueue {
 
         loop {
             if count == 0 {
-                self.fsm_trigger(Trigger::FinishRun, None);
+                let noop: Event = Rc::new(vec![Box::new(NOOP {})]);
+                self.fsm_trigger(Trigger::FinishRun, noop);
                 break;
             }
             debug!("");
@@ -173,5 +179,17 @@ impl EventQueue {
     fn exception(&self, _event: Event) {
         self.purge();
         // throw?
+    }
+}
+
+pub trait Dispatchable<T> {
+    fn handler(self: Rc<Self>, event: T) -> Event;
+
+    fn dispatch(self: Rc<Self>, event: T) {
+        debug!("Dispatch start");
+        EVENT_QUEUE.with(|event_queue| {
+            debug!("Acquired the event queue instance");
+            event_queue.push(self.handler(event))
+        })
     }
 }
