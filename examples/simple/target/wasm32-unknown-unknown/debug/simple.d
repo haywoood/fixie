@@ -1,1 +1,0 @@
-/Users/haywood/dev/rust/fixie/examples/simple/target/wasm32-unknown-unknown/debug/simple.wasm: /Users/haywood/dev/rust/fixie/examples/simple/src/main.rs /Users/haywood/dev/rust/fixie/src/events.rs /Users/haywood/dev/rust/fixie/src/lib.rs /Users/haywood/dev/rust/fixie/src/router.rs
